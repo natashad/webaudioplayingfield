@@ -1,0 +1,133 @@
+<html>
+    <head>
+        <title>Web Audio</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script>
+    </head>
+    <body>
+        <p>Nothing to see... hear</p>
+
+        <table>
+            <tr id="dog">
+                <td>Dog</td>
+                <td><input type="checkbox" name="dog1" value="0" checked /></td>
+                <td><input type="checkbox" name="dog2" value="1" checked /></td>
+                <td><input type="checkbox" name="dog3" value="2" checked /></td>
+                <td><input type="checkbox" name="dog4" value="3" checked /></td>
+            </tr>
+            <tr id="cat">
+                <td>Cat</td>
+                <td><input type="checkbox" name="cat1" value="0" checked /></td>
+                <td><input type="checkbox" name="cat2" value="1" checked /></td>
+                <td><input type="checkbox" name="cat3" value="2" checked /></td>
+                <td><input type="checkbox" name="cat4" value="3" checked /></td>
+            <tr>
+            <tr id="bird">
+                <td>Bird</td>
+                <td><input type="checkbox" name="bird1" value="0" checked /></td>
+                <td><input type="checkbox" name="bird2" value="1" checked /></td>
+                <td><input type="checkbox" name="bird3" value="2" checked /></td>
+                <td><input type="checkbox" name="bird4" value="3" checked /></td>
+            <tr>
+        </table>
+
+        <button type="button" onclick="makeDogBark();">Make noise!</button>
+    </body>
+</html>
+<script type="text/javascript">
+    var context;
+    var bufferLoader = new Array();
+    var playbackArray = new Array(new Array(), new Array(), new Array());
+
+    // Fix up prefixing
+    window.addEventListener('load', init, false);
+
+    function init() {
+        try
+        {
+            window.AudioContext =
+                window.AudioContext || window.webkitAudioContext;
+            context = new AudioContext;
+        }
+        catch(e)
+        {
+            alert("Web Audio API is not supported in this browser. Please try another.");
+        }
+
+        loadSound('dog_bark_x.wav', 0);
+        loadSound('cat_meow2.wav', 1);
+        loadSound('bird.wav', 2)
+        // loadDogBark();
+    }
+
+    function buildPlaybackArray() {
+        var animals = new Array("dog", "cat", "bird");
+
+        for (var i = 0; i < animals.length; i++) {
+
+            $('#' + animals[i] + ' input').each(function() {
+                playbackArray[i][parseInt($(this).val())] = this.checked ? 1 : 0;
+            });
+
+        }
+
+        // for (var i = 0; i < animals.length; i++) {
+        //     console.log(animals[i] + " : ");
+        //     for (var j = 0; j < playbackArray[i].length; j++) {
+        //         console.log(playbackArray[i][j]);
+        //     }
+        // }
+    }
+
+    function makeDogBark() {
+
+        buildPlaybackArray();
+        var time = 0
+
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 4; j++) {
+                if (playbackArray[i][j]==1) {
+                    playSound(bufferLoader[i], j+1);
+                    console.log("i : " + i + " , j : " + j+1);
+                }
+            }
+        }
+
+        // var source1 = context.createBufferSource();
+        // var source2 = context.createBufferSource();
+
+        // source1.buffer = bufferLoader[0];
+        // source2.buffer = bufferLoader[1];
+
+        // // source.buffer = dogBarkingBuffer;
+
+        // source1.connect(context.destination);
+        // source2.connect(context.destination);
+        // source1.start(0);
+        // source2.start(0);
+
+    }
+
+    function playSound(buffer, time) {
+        var source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.start(time);
+    }
+
+    function loadSound(url, ind) {
+        var request = new XMLHttpRequest();
+        // var url = 'http://www.wavsource.com/snds_2013-12-15_6530957397631847/animals/dog_bark_x.wav';
+
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        // Decode asynchronously
+        request.onload = function() {
+            context.decodeAudioData(request.response, function(buffer) {
+                bufferLoader[ind] = buffer;
+            }, function(err) { console.log("err(decodeAudioData): "+err); });
+        }
+
+        request.send();
+    }
+</script>
